@@ -2,7 +2,11 @@ import { Component, MarkdownRenderer } from 'obsidian';
 
 import type { Moment } from 'moment';
 import { replaceTaskWithTasks } from './File';
-import { getSettings } from './Settings';
+import {
+    defaultSettings,
+    dueDateMarkerDefaultAlternatives,
+    getSettings,
+} from './Settings';
 import { LayoutOptions } from './LayoutOptions';
 import { Recurrence } from './Recurrence';
 import { Urgency } from './Urgency';
@@ -41,8 +45,9 @@ export class Task {
     public readonly startDate: Moment | null;
     public readonly scheduledDate: Moment | null;
     public readonly dueDate: Moment | null;
+    public readonly dueDateBacklink: boolean | null;
     public readonly doneDate: Moment | null;
-
+    public readonly doneDateBacklink: boolean | null;
     public readonly recurrence: Recurrence | null;
     /** The blockLink is a "^" annotation after the dates/recurrence rules. */
     public readonly blockLink: string;
@@ -74,7 +79,9 @@ export class Task {
         startDate,
         scheduledDate,
         dueDate,
+        dueDateBacklink,
         doneDate,
+        doneDateBacklink,
         recurrence,
         blockLink,
     }: {
@@ -90,7 +97,9 @@ export class Task {
         startDate: moment.Moment | null;
         scheduledDate: moment.Moment | null;
         dueDate: moment.Moment | null;
+        dueDateBacklink: boolean | null;
         doneDate: moment.Moment | null;
+        doneDateBacklink: boolean | null;
         recurrence: Recurrence | null;
         blockLink: string;
     }) {
@@ -108,8 +117,9 @@ export class Task {
         this.startDate = startDate;
         this.scheduledDate = scheduledDate;
         this.dueDate = dueDate;
+        this.dueDateBacklink = dueDateBacklink;
         this.doneDate = doneDate;
-
+        this.doneDateBacklink = doneDateBacklink;
         this.recurrence = recurrence;
         this.blockLink = blockLink;
     }
@@ -127,6 +137,32 @@ export class Task {
         sectionIndex: number;
         precedingHeader: string | null;
     }): Task | null {
+        // The following regexes end with `$` because they will be matched and
+        // removed from the end until none are left.
+        const dateRegexString = '(\\[\\[)?(\\d{4}-\\d{2}-\\d{2})(\\]\\])?';
+        const {
+            dueDateMarker,
+            doneDateMarker,
+            globalFilter,
+            recurrenceMarker,
+        } = getSettings();
+        const dueDateRegex = new RegExp(
+            `${
+                dueDateMarker === defaultSettings.dueDateMarker
+                    ? '[' + dueDateMarkerDefaultAlternatives + ']'
+                    : dueDateMarker
+            }\\s*?${dateRegexString}$`,
+            'u',
+        );
+        const doneDateRegex = new RegExp(
+            `${doneDateMarker}\\s*?${dateRegexString}$`,
+            'u',
+        );
+        const recurrenceRegex = new RegExp(
+            `${recurrenceMarker}\\s*?([a-zA-Z0-9, !]+)$`,
+            'u',
+        );
+
         const regexMatch = line.match(Task.taskRegex);
         if (regexMatch === null) {
             return null;
@@ -147,7 +183,6 @@ export class Task {
         // match[3] includes the whole body of the task after the brackets.
         const body = regexMatch[3].trim();
 
-        const { globalFilter } = getSettings();
         if (!body.includes(globalFilter)) {
             return null;
         }
@@ -169,7 +204,9 @@ export class Task {
         let startDate: Moment | null = null;
         let scheduledDate: Moment | null = null;
         let dueDate: Moment | null = null;
+        let dueDateBacklink: boolean = false;
         let doneDate: Moment | null = null;
+        let doneDateBacklink: boolean = false;
         let recurrence: Recurrence | null = null;
         // Add a "max runs" failsafe to never end in an endless loop:
         const maxRuns = 7;
@@ -198,17 +235,19 @@ export class Task {
 
             const doneDateMatch = description.match(Task.doneDateRegex);
             if (doneDateMatch !== null) {
-                doneDate = window.moment(doneDateMatch[1], Task.dateFormat);
-                description = description
-                    .replace(Task.doneDateRegex, '')
-                    .trim();
+                doneDate = window.moment(doneDateMatch[2], Task.dateFormat);
+                doneDateBacklink =
+                    doneDateMatch[1] === '[[' && doneDateMatch[3] === ']]';
+                description = description.replace(doneDateRegex, '').trim();
                 matched = true;
             }
 
-            const dueDateMatch = description.match(Task.dueDateRegex);
+            const dueDateMatch = description.match(dueDateRegex);
             if (dueDateMatch !== null) {
-                dueDate = window.moment(dueDateMatch[1], Task.dateFormat);
-                description = description.replace(Task.dueDateRegex, '').trim();
+                dueDate = window.moment(dueDateMatch[2], Task.dateFormat);
+                dueDateBacklink =
+                    dueDateMatch[1] === '[[' && dueDateMatch[3] === ']]';
+                description = description.replace(dueDateRegex, '').trim();
                 matched = true;
             }
 
@@ -244,9 +283,7 @@ export class Task {
                     dueDate,
                 });
 
-                description = description
-                    .replace(Task.recurrenceRegex, '')
-                    .trim();
+                description = description.replace(recurrenceRegex, '').trim();
                 matched = true;
             }
 
@@ -266,7 +303,9 @@ export class Task {
             startDate,
             scheduledDate,
             dueDate,
+            dueDateBacklink,
             doneDate,
+            doneDateBacklink,
             recurrence,
             blockLink,
         });
@@ -402,14 +441,22 @@ export class Task {
         if (!layoutOptions.hideDueDate && this.dueDate) {
             const dueDate: string = layoutOptions.shortMode
                 ? ' 📅'
-                : ` 📅 ${this.dueDate.format(Task.dateFormat)}`;
+                : ` 📅 ${
+                      this.dueDateBacklink ? '[[' : ''
+                  }${this.dueDate.format(Task.dateFormat)}${
+                      this.dueDateBacklink ? ']]' : ''
+                  }`;
             taskString += dueDate;
         }
 
         if (!layoutOptions.hideDoneDate && this.doneDate) {
             const doneDate: string = layoutOptions.shortMode
                 ? ' ✅'
-                : ` ✅ ${this.doneDate.format(Task.dateFormat)}`;
+                : ` ✅ ${
+                      this.doneDateBacklink ? '[[' : ''
+                  }${this.doneDate.format(Task.dateFormat)}${
+                      this.doneDateBacklink ? ']]' : ''
+                  }`;
             taskString += doneDate;
         }
 
@@ -434,6 +481,7 @@ export class Task {
      * task is not recurring, it will return `[toggled]`.
      */
     public toggle(): Task[] {
+        const { makeDatesBacklinks } = getSettings();
         const newStatus: Status =
             this.status === Status.Todo ? Status.Done : Status.Todo;
 
@@ -457,7 +505,9 @@ export class Task {
         const toggledTask = new Task({
             ...this,
             status: newStatus,
+            dueDateBacklink: makeDatesBacklinks,
             doneDate: newDoneDate,
+            doneDateBacklink: makeDatesBacklinks,
             originalStatusCharacter: newStatus === Status.Done ? 'x' : ' ',
         });
 
@@ -466,6 +516,8 @@ export class Task {
         if (nextOccurrence !== null) {
             const nextTask = new Task({
                 ...this,
+                dueDateBacklink: makeDatesBacklinks,
+                doneDateBacklink: makeDatesBacklinks,    
                 ...nextOccurrence,
                 // New occurrences cannot have the same block link.
                 // And random block links don't help.

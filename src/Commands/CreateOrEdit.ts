@@ -73,7 +73,9 @@ const taskFromLine = ({ line, path }: { line: string; path: string }): Task => {
             startDate: null,
             scheduledDate: null,
             dueDate: null,
+            dueDateBacklink: null,
             doneDate: null,
+            doneDateBacklink: null,
             recurrence: null,
             // We don't need the following fields to edit here in the editor.
             sectionStart: 0,
@@ -106,7 +108,9 @@ const taskFromLine = ({ line, path }: { line: string; path: string }): Task => {
         startDate: null,
         scheduledDate: null,
         dueDate: null,
+        dueDateBacklink: null,
         doneDate: null,
+        doneDateBacklink: null,
         recurrence: null,
         // We don't need the following fields to edit here in the editor.
         sectionStart: 0,

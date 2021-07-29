@@ -35,6 +35,12 @@
     let parsedRecurrence: string = '';
     let parsedDone: string = '';
 
+    const { 
+        doneDateMarker,
+        dueDateMarker,
+        recurrenceMarker,
+    } = getSettings();
+
     $: {
         if (!editableTask.startDate) {
             parsedStartDate = '<i>no start date</>';
@@ -154,7 +160,7 @@
     });
 
     const _onSubmit = () => {
-        const { globalFilter } = getSettings();
+        const { globalFilter, makeDatesBacklinks } = getSettings();
         let description = editableTask.description.trim();
         if (!description.includes(globalFilter)) {
             description = globalFilter + ' ' + description;
@@ -224,11 +230,9 @@
             startDate,
             scheduledDate,
             dueDate,
-            doneDate: window
-                .moment(editableTask.doneDate, 'YYYY-MM-DD')
-                .isValid()
-                ? window.moment(editableTask.doneDate, 'YYYY-MM-DD')
-                : null,
+            dueDateBacklink: makeDatesBacklinks,
+            doneDate: window.moment(editableTask.doneDate, 'YYYY-MM-DD').isValid() ? window.moment(editableTask.doneDate, 'YYYY-MM-DD') : null,
+            doneDateBacklink: makeDatesBacklinks,
         });
 
         onSubmit([updatedTask]);
