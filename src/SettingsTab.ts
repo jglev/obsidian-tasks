@@ -243,7 +243,7 @@ export class SettingsTab extends PluginSettingTab {
                                         ...newSubstatuses[substatusIndex].rules[
                                             ruleIndex
                                         ],
-                                        from: value,
+                                        from: value || '',
                                     },
                                 );
                                 updateSettings({
@@ -303,7 +303,7 @@ export class SettingsTab extends PluginSettingTab {
                                         ...newSubstatuses[substatusIndex].rules[
                                             ruleIndex
                                         ],
-                                        to: value,
+                                        to: value || '',
                                     },
                                 );
                                 updateSettings({

@@ -1,13 +1,17 @@
-import { Editor, MarkdownView, View } from 'obsidian';
+import { App, Editor, MarkdownView, View } from 'obsidian';
 
-import { Substatus, SubstatusRule } from '../Settings';
+import { SubstatusModal } from 'SubstatusModal';
+import { getSettings } from '../Settings';
+
+import { SubstatusRule } from '../Settings';
+
 import { toggleLine } from './ToggleDone';
 
-export const updateSubstatus = (
+export const applySubstatus = (
     checking: boolean,
     editor: Editor,
     view: View,
-    substatus: Substatus,
+    app: App,
 ) => {
     if (checking) {
         if (!(view instanceof MarkdownView)) {
@@ -38,21 +42,35 @@ export const updateSubstatus = (
     const line = editor.getLine(lineNumber);
     let updatedLine = line;
 
-    if (substatus.done) {
-        updatedLine = toggleLine({ line, path });
-    }
+    const onSubmit = (substatusIndex: number): void => {
+        const substatus = getSettings().substatuses[substatusIndex];
 
-    substatus.rules.forEach((rule: SubstatusRule) => {
-        updatedLine = updatedLine.replace(
-            new RegExp(
-                rule.from,
-                `u${rule.caseInsensitive ? 'i' : ''}${rule.global ? 'g' : ''}`,
-            ),
-            rule.to,
-        );
+        if (substatus.done) {
+            updatedLine = toggleLine({ line, path });
+        }
+
+        substatus.rules.forEach((rule: SubstatusRule) => {
+            updatedLine = updatedLine.replace(
+                new RegExp(
+                    rule.from,
+                    `u${rule.caseInsensitive ? 'i' : ''}${
+                        rule.global ? 'g' : ''
+                    }`,
+                ),
+                rule.to,
+            );
+        });
+
+        editor.setLine(lineNumber, updatedLine);
+    };
+
+    // Need to create a new instance every time, as cursor/task can change.
+    const substatusModal = new SubstatusModal({
+        app,
+        task,
+        onSubmit,
     });
-
-    editor.setLine(lineNumber, updatedLine);
+    substatusModal.open();
 
     // The cursor is moved to the end of the line by default.
     // If there is text on the line, put the cursor back where it was on the line.

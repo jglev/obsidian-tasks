@@ -2,7 +2,7 @@ import { Substatus, getSettings } from '../Settings';
 import { createOrEdit } from './CreateOrEdit';
 
 import { toggleDone } from './ToggleDone';
-import { updateSubstatus } from './UpdateSubstatus';
+import { applySubstatus } from './ApplySubstatus';
 import type { App, Editor, Plugin, View } from 'obsidian';
 
 export class Commands {
@@ -33,22 +33,34 @@ export class Commands {
             editorCheckCallback: toggleDone,
         });
 
-        const substatuses = getSettings().substatuses;
-        substatuses.forEach((substatus: Substatus, substatusIndex: number) => {
-            plugin.addCommand({
-                id:
-                    substatus.name.replace(/\s+/g, '-') ||
-                    `untitled-tasks-substatus-${substatusIndex}`,
-                name:
-                    substatus.name || `(Untitled Substatus ${substatusIndex})`,
-                editorCheckCallback: (
-                    checking: boolean,
-                    editor: Editor,
-                    view: View,
-                ) => {
-                    return updateSubstatus(checking, editor, view, substatus);
-                },
-            });
+        plugin.addCommand({
+            id: 'applySubstatus',
+            name: 'Apply substatus',
+            editorCheckCallback: (
+                checking: boolean,
+                editor: Editor,
+                view: View,
+            ) => {
+                return applySubstatus(checking, editor, view, this.app);
+            },
         });
+
+        // const substatuses = getSettings().substatuses;
+        // substatuses.forEach((substatus: Substatus, substatusIndex: number) => {
+        //     plugin.addCommand({
+        //         id:
+        //             substatus.name.replace(/\s+/g, '-') ||
+        //             `untitled-tasks-substatus-${substatusIndex}`,
+        //         name:
+        //             substatus.name || `(Untitled Substatus ${substatusIndex})`,
+        //         editorCheckCallback: (
+        //             checking: boolean,
+        //             editor: Editor,
+        //             view: View,
+        //         ) => {
+        //             return applySubstatus(checking, editor, view, substatus);
+        //         },
+        //     });
+        // });
     }
 }
