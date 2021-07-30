@@ -1,4 +1,3 @@
-import { Substatus, getSettings } from '../Settings';
 import { createOrEdit } from './CreateOrEdit';
 
 import { toggleDone } from './ToggleDone';

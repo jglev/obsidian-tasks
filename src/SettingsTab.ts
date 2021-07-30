@@ -370,6 +370,7 @@ export class SettingsTab extends PluginSettingTab {
                         ],
                     });
                     await this.plugin.saveSettings();
+                    this.display();
                 });
         });
     }

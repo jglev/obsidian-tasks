@@ -3,7 +3,7 @@ import { App, Editor, MarkdownView, View } from 'obsidian';
 import { SubstatusModal } from 'SubstatusModal';
 import { getSettings } from '../Settings';
 
-import { SubstatusRule } from '../Settings';
+// import { SubstatusRule } from '../Settings';
 
 import { toggleLine } from './ToggleDone';
 
@@ -42,14 +42,14 @@ export const applySubstatus = (
     const line = editor.getLine(lineNumber);
     let updatedLine = line;
 
-    const onSubmit = (substatusIndex: number): void => {
+    const onChooseItem = (substatusIndex: number): void => {
         const substatus = getSettings().substatuses[substatusIndex];
 
         if (substatus.done) {
             updatedLine = toggleLine({ line, path });
         }
 
-        substatus.rules.forEach((rule: SubstatusRule) => {
+        substatus.rules.forEach((rule) => {
             updatedLine = updatedLine.replace(
                 new RegExp(
                     rule.from,
@@ -67,8 +67,7 @@ export const applySubstatus = (
     // Need to create a new instance every time, as cursor/task can change.
     const substatusModal = new SubstatusModal({
         app,
-        task,
-        onSubmit,
+        onChooseItem,
     });
     substatusModal.open();
 
