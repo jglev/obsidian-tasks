@@ -1,3 +1,5 @@
+import cloneDeep from 'lodash.clonedeep';
+
 export interface Settings {
     globalFilter: string;
     removeGlobalFilter: boolean;
@@ -5,6 +7,12 @@ export interface Settings {
     dueDateMarker: string;
     doneDateMarker: string;
     recurrenceMarker: string;
+    substatuses: Substatus[];
+}
+
+export interface Substatus {
+    name: string = '';
+    rules: { from: string; to: string }[];
 }
 
 export const defaultSettings: Settings = {
@@ -14,6 +22,12 @@ export const defaultSettings: Settings = {
     dueDateMarker: '📅',
     doneDateMarker: '✅',
     recurrenceMarker: '🔁',
+    substatuses: [
+        {
+            name: 'Migrated',
+            rules: [{ from: '1', to: '2' }],
+        },
+    ],
 };
 
 let settings: Settings = { ...defaultSettings };
@@ -23,7 +37,7 @@ export const getSettings = (): Settings => {
 };
 
 export const updateSettings = (newSettings: Partial<Settings>): Settings => {
-    settings = { ...settings, ...newSettings };
+    settings = { ...cloneDeep(settings), ...cloneDeep(newSettings) };
 
     return getSettings();
 };

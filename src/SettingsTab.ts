@@ -1,6 +1,12 @@
+import cloneDeep from 'lodash.clonedeep';
 import { PluginSettingTab, Setting } from 'obsidian';
 
-import { defaultSettings, getSettings, updateSettings } from './Settings';
+import {
+    Substatus,
+    defaultSettings,
+    getSettings,
+    updateSettings,
+} from './Settings';
 import type TasksPlugin from './main';
 
 export class SettingsTab extends PluginSettingTab {
@@ -155,5 +161,151 @@ export class SettingsTab extends PluginSettingTab {
                         await this.plugin.saveSettings();
                     });
             });
+
+        const substatusesEl = containerEl.createEl('div');
+        const substatuses = getSettings().substatuses;
+        substatuses.forEach((substatus: Substatus, substatusIndex: number) => {
+            const substatusEl = substatusesEl.createEl('div');
+            // substatusEl.addClass('substatus');
+
+            new Setting(substatusEl)
+                .addExtraButton((button) => {
+                    button
+                        .setIcon('cross')
+                        .setTooltip('Delete substatus')
+                        .onClick(async () => {
+                            const newSubstatuses = cloneDeep(
+                                getSettings().substatuses,
+                            );
+                            newSubstatuses.splice(substatusIndex, 1);
+                            updateSettings({
+                                substatuses: newSubstatuses,
+                            });
+
+                            await this.plugin.saveSettings();
+                            this.display();
+                        });
+                })
+                .addText((text) => {
+                    text.setPlaceholder('Substatus name')
+                        .setValue(substatus.name)
+                        .onChange(async (value) => {
+                            const newSubstatuses = cloneDeep(
+                                getSettings().substatuses,
+                            );
+                            newSubstatuses.splice(substatusIndex, 1, {
+                                ...substatuses[substatusIndex],
+                                name: value,
+                            });
+                            updateSettings({
+                                substatuses: newSubstatuses,
+                            });
+
+                            await this.plugin.saveSettings();
+                        });
+                })
+                .addButton((button) => {
+                    button
+                        .setButtonText('Add find/replace rule')
+                        .onClick(async () => {
+                            const newSubstatuses = cloneDeep(
+                                getSettings().substatuses,
+                            );
+                            newSubstatuses[substatusIndex].rules.push({
+                                from: '',
+                                to: '',
+                            });
+                            updateSettings({
+                                substatuses: newSubstatuses,
+                            });
+                            await this.plugin.saveSettings();
+                            this.display();
+                        });
+                });
+
+            substatus.rules.forEach(
+                (rule: { from: string; to: string }, ruleIndex) => {
+                    new Setting(substatusEl)
+                        .addText((text) => {
+                            text.setPlaceholder('From (Regex)')
+                                .setValue(rule.from)
+                                .onChange(async (value) => {
+                                    const newSubstatuses = cloneDeep(
+                                        getSettings().substatuses,
+                                    );
+                                    newSubstatuses[substatusIndex].rules.splice(
+                                        ruleIndex,
+                                        1,
+                                        {
+                                            ...newSubstatuses[substatusIndex]
+                                                .rules[ruleIndex],
+                                            from: value,
+                                        },
+                                    );
+                                    updateSettings({
+                                        substatuses: newSubstatuses,
+                                    });
+
+                                    await this.plugin.saveSettings();
+                                });
+                        })
+                        .addText((text) => {
+                            text.setPlaceholder('To')
+                                .setValue(rule.to)
+                                .onChange(async (value) => {
+                                    const newSubstatuses = cloneDeep(
+                                        getSettings().substatuses,
+                                    );
+                                    newSubstatuses[substatusIndex].rules.splice(
+                                        ruleIndex,
+                                        1,
+                                        {
+                                            ...newSubstatuses[substatusIndex]
+                                                .rules[ruleIndex],
+                                            to: value,
+                                        },
+                                    );
+                                    updateSettings({
+                                        substatuses: newSubstatuses,
+                                    });
+
+                                    await this.plugin.saveSettings();
+                                });
+                        })
+                        .addExtraButton((button) => {
+                            button
+                                .setIcon('cross')
+                                .setTooltip('Delete rule')
+                                .onClick(async () => {
+                                    const newSubstatuses = cloneDeep(
+                                        getSettings().substatuses,
+                                    );
+                                    newSubstatuses[substatusIndex].rules.splice(
+                                        ruleIndex,
+                                        1,
+                                    );
+                                    updateSettings({
+                                        substatuses: newSubstatuses,
+                                    });
+
+                                    await this.plugin.saveSettings();
+                                    this.display();
+                                });
+                        });
+                },
+            );
+        });
+
+        new Setting(substatusesEl).addButton((button) => {
+            button.setButtonText('Add substatus').onClick(async () => {
+                updateSettings({
+                    substatuses: [
+                        ...getSettings().substatuses,
+                        { name: '', rules: [] },
+                    ],
+                });
+                await this.plugin.saveSettings();
+            });
+        });
     }
 }
