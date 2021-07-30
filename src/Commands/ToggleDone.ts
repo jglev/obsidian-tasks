@@ -45,7 +45,13 @@ export const toggleDone = (checking: boolean, editor: Editor, view: View) => {
     }
 };
 
-const toggleLine = ({ line, path }: { line: string; path: string }): string => {
+export const toggleLine = ({
+    line,
+    path,
+}: {
+    line: string;
+    path: string;
+}): string => {
     let toggledLine: string = line;
 
     const task = Task.fromLine({

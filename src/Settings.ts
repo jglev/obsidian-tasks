@@ -11,8 +11,16 @@ export interface Settings {
 }
 
 export interface Substatus {
-    name: string = '';
-    rules: { from: string; to: string }[];
+    name: string;
+    done: boolean;
+    rules: SubstatusRule[];
+}
+
+export interface SubstatusRule {
+    from: string;
+    to: string;
+    caseInsensitive: boolean;
+    global: boolean;
 }
 
 export const defaultSettings: Settings = {
@@ -22,12 +30,7 @@ export const defaultSettings: Settings = {
     dueDateMarker: '📅',
     doneDateMarker: '✅',
     recurrenceMarker: '🔁',
-    substatuses: [
-        {
-            name: 'Migrated',
-            rules: [{ from: '1', to: '2' }],
-        },
-    ],
+    substatuses: [],
 };
 
 let settings: Settings = { ...defaultSettings };
