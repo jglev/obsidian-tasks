@@ -35,12 +35,6 @@
     let parsedRecurrence: string = '';
     let parsedDone: string = '';
 
-    const { 
-        doneDateMarker,
-        dueDateMarker,
-        recurrenceMarker,
-    } = getSettings();
-
     $: {
         if (!editableTask.startDate) {
             parsedStartDate = '<i>no start date</>';
@@ -228,7 +222,9 @@
             priority: parsedPriority,
             recurrence,
             startDate,
+            startDateBacklink: makeDatesBacklinks,
             scheduledDate,
+            scheduledDateBacklink: makeDatesBacklinks,
             dueDate,
             dueDateBacklink: makeDatesBacklinks,
             doneDate: window.moment(editableTask.doneDate, 'YYYY-MM-DD').isValid() ? window.moment(editableTask.doneDate, 'YYYY-MM-DD') : null,

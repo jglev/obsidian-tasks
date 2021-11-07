@@ -1,6 +1,6 @@
 import { PluginSettingTab, Setting } from 'obsidian';
 
-import { defaultSettings, getSettings, updateSettings } from './Settings';
+import { getSettings, updateSettings } from './Settings';
 import type TasksPlugin from './main';
 
 export class SettingsTab extends PluginSettingTab {
@@ -77,80 +77,6 @@ export class SettingsTab extends PluginSettingTab {
                     .setValue(settings.makeDatesBacklinks)
                     .onChange(async (value) => {
                         updateSettings({ makeDatesBacklinks: value });
-
-                        await this.plugin.saveSettings();
-                    });
-            });
-
-        new Setting(containerEl)
-            .setName('Due date marker')
-            .setDesc('A marker that immediately precedes due dates.')
-            .addText((text) => {
-                const settings = getSettings();
-
-                text.setPlaceholder(defaultSettings.dueDateMarker)
-                    .setValue(
-                        settings.dueDateMarker === defaultSettings.dueDateMarker
-                            ? ''
-                            : settings.dueDateMarker,
-                    )
-                    .onChange(async (value) => {
-                        updateSettings({
-                            dueDateMarker:
-                                value !== ''
-                                    ? value
-                                    : defaultSettings.dueDateMarker,
-                        });
-
-                        await this.plugin.saveSettings();
-                    });
-            });
-
-        new Setting(containerEl)
-            .setName('Done date marker')
-            .setDesc('A marker that immediately precedes done dates.')
-            .addText((text) => {
-                const settings = getSettings();
-
-                text.setPlaceholder(defaultSettings.doneDateMarker)
-                    .setValue(
-                        settings.doneDateMarker ===
-                            defaultSettings.doneDateMarker
-                            ? ''
-                            : settings.doneDateMarker,
-                    )
-                    .onChange(async (value) => {
-                        updateSettings({
-                            doneDateMarker:
-                                value !== ''
-                                    ? value
-                                    : defaultSettings.doneDateMarker,
-                        });
-
-                        await this.plugin.saveSettings();
-                    });
-            });
-
-        new Setting(containerEl)
-            .setName('Recurrence marker')
-            .setDesc('A marker that immediately precedes a recurrence date.')
-            .addText((text) => {
-                const settings = getSettings();
-
-                text.setPlaceholder(defaultSettings.recurrenceMarker)
-                    .setValue(
-                        settings.recurrenceMarker ===
-                            defaultSettings.recurrenceMarker
-                            ? ''
-                            : settings.recurrenceMarker,
-                    )
-                    .onChange(async (value) => {
-                        updateSettings({
-                            recurrenceMarker:
-                                value !== ''
-                                    ? value
-                                    : defaultSettings.recurrenceMarker,
-                        });
 
                         await this.plugin.saveSettings();
                     });
